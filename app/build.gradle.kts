@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.example.solitodo"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.solitodo"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -25,6 +25,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        create("customDebugType") {
+            isDebuggable = true
         }
     }
     compileOptions {
@@ -40,7 +43,18 @@ android {
 }
 
 dependencies {
+    // Retrofit for API requests
+    implementation ("com.google.code.gson:gson:2.9.1")
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
 
+    // Lifecycle components for MVVM
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.0")
+    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.5.0")
+
+    // Coroutines for background tasks
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
+    
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

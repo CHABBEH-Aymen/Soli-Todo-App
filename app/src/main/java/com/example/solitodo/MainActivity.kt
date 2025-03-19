@@ -4,44 +4,29 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.solitodo.ui.theme.SoliTodoTheme
+import com.example.solitodo.network.ApiService
+import com.example.solitodo.repository.TaskRepository
+import com.example.solitodo.useCase.DeleteTaskUseCase
+import com.example.solitodo.useCase.GetTasksUseCase
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val repository: TaskRepository = TaskRepository(ApiService)
+        val getTaskUseCase = GetTasksUseCase(repository)
+        val deleteTaskUseCase = DeleteTaskUseCase(repository)
+        val vieModel = TaskVieModel(getTaskUseCase, deleteTaskUseCase)
         enableEdgeToEdge()
         setContent {
-            SoliTodoTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+//            SoliTodoTheme {
+//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+//                    Greeting(
+//                        name = "Android",
+//                        modifier = Modifier.padding(innerPadding)
+//                    )
+//                }
+//            }
+            TaskListScreen(vieModel)
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SoliTodoTheme {
-        Greeting("Android")
     }
 }
