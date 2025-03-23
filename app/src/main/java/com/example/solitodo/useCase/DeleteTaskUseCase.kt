@@ -4,7 +4,7 @@ import com.example.solitodo.repository.TaskRepository
 
 class DeleteTaskUseCase(private val taskRepository: TaskRepository ) {
 
-    fun execute(id: Int)
+    operator fun invoke(id: Int)
     {
         taskRepository.delete(id)
     }

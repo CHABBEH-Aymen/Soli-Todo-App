@@ -5,7 +5,7 @@ import com.example.solitodo.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
 
 class GetTasksUseCase(private val taskRepository: TaskRepository){
-    fun execute(): Flow<List<TaskDao>>
+    operator fun invoke(): Flow<List<TaskDao>>
     {
         return taskRepository.tasks;
     }

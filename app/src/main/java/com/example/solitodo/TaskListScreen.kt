@@ -1,55 +1,94 @@
 package com.example.solitodo
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.example.solitodo.dao.TaskDao
-import javax.security.auth.callback.Callback
 
-//@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(vieModel: TaskVieModel) {
-    val tasks = vieModel.tasks.collectAsState(initial = emptyList()).value
+    val tasks by vieModel.tasks.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var updateTask: TaskDao by remember { mutableStateOf(TaskDao( title = "")) }
 
-    Scaffold (topBar = {
-        TopAppBar(title = {Text("Tasks")})
+    Scaffold(topBar = {
+        TopAppBar(title = { Text("Tasks") })
     }, content = { innerpading ->
+        if (showDialog)
+        {
+            AddTaskDialog(onDismiss = {showDialog = false}, onCreate = {title ->
+                vieModel.createTask(title, "")
+                showDialog = false
+                vieModel.getTasks()
+            })
+        }
+        if(showUpdateDialog){
+            UpdateTaskDialog(onDismiss = { showUpdateDialog = false },
+                onUpdate = { id, title ->
+                    vieModel.updateTask(id, title)
+                }, updateTask )
+        }
         LazyColumn(modifier = Modifier.padding(innerpading))
         {
-            items(tasks.size){ index ->
-                TaskItem(tasks[index]) { vieModel.deleteTask(tasks[index].id) }
+            items(tasks){task ->
+                TaskItem(task,
+                    delete = { vieModel.deleteTask(task.id!!) },
+                    edit = {task ->
+                    showUpdateDialog = true
+                    updateTask = task
+                })
             }
         }
-    })
+    },
+        floatingActionButton = {
+            FloatingActionButton(onClick = {showDialog = true}, containerColor = MaterialTheme.colorScheme.primary) {
+                Icon(Icons.Default.Add, contentDescription = "Add Task")
+            }
+        }
+    )
 }
 
 @Composable
-fun TaskItem(task: TaskDao, delete: ()-> Unit)
-{
+fun TaskItem(task: TaskDao, delete: () -> Unit, edit: (task: TaskDao)->Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -82,7 +121,7 @@ fun TaskItem(task: TaskDao, delete: ()-> Unit)
                 // Edit Button
                 Button(
                     modifier = Modifier.background(Color.Gray),
-                    onClick = { /* Handle edit action */ },
+                    onClick = { edit(task) },
                     colors = ButtonDefaults.buttonColors(Color.Gray)
                 ) {
                     Icon(
@@ -90,6 +129,115 @@ fun TaskItem(task: TaskDao, delete: ()-> Unit)
                         contentDescription = "Edit"
                     )
                     Text(text = "Edit", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AddTaskDialog(onDismiss: ()->Unit, onCreate: (title: String) -> Unit) {
+    var taskTitle by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+
+    Dialog(onDismissRequest = { onDismiss() })
+    {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Add New Task", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = taskTitle,
+                    onValueChange = { taskTitle = it },
+                    label = { Text("Task Title") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = {
+                            if (taskTitle.isNotBlank()) {
+                                onCreate(taskTitle) // Pass task title to the callback function
+                            }
+                        }
+                    ) {
+                        Text("Add")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UpdateTaskDialog(onDismiss: () -> Unit, onUpdate: (id: Int, title: String)-> Unit, task: TaskDao){
+    var taskTitle by remember { mutableStateOf(task.title) }
+    var description by remember { mutableStateOf("") }
+
+    Dialog(onDismissRequest = { onDismiss() })
+    {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Add New Task", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = taskTitle,
+                    onValueChange = { taskTitle = it },
+                    label = { Text("Task Title") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = {
+                            if (taskTitle.isNotBlank()) {
+                                onUpdate(task.id!!, taskTitle)// Pass task to the callback function
+                                onDismiss()
+                            }
+                        }
+                    ) {
+                        Text("Update")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
                 }
             }
         }

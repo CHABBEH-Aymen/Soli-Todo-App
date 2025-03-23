@@ -21,7 +21,6 @@ class TaskRepository (private val apiService: ApiService): Repository {
                 call: Call<List<TaskDao>>,
                 response: Response<List<TaskDao>>
             ) {
-                println("Network Respond: $response")
                 _tasks.value = response.body() ?: emptyList()
             }
 
@@ -41,11 +40,33 @@ class TaskRepository (private val apiService: ApiService): Repository {
     }
 
     override fun create(data: TaskDao) {
-        TODO("Not yet implemented")
+        apiService.apiInterface.createTask(data).enqueue(object: Callback<Unit>{
+            override fun onResponse(
+                call: Call<Unit?>,
+                response: Response<Unit?>
+            ) {
+                println("Item Created")
+            }
+
+            override fun onFailure(call: Call<Unit?>, t: Throwable) {
+                println(t.message)
+            }
+        })
     }
 
     override fun update(id: Int, data: TaskDao) {
-        TODO("Not yet implemented")
+        apiService.apiInterface.updateTask(id, data).enqueue(object: Callback<Unit>{
+            override fun onResponse(
+                call: Call<Unit?>,
+                response: Response<Unit?>
+            ) {
+                println("Item Updated")
+            }
+
+            override fun onFailure(call: Call<Unit?>, t: Throwable) {
+                println(t.message)
+            }
+        })
     }
 
     override fun delete(id: Int) {
