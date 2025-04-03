@@ -8,32 +8,24 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.solitodo.Data.Todo
-import com.example.solitodo.api.RetrofitClient
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val vieModel = CountViewModel()
         enableEdgeToEdge()
         setContent {
             Scaffold(
@@ -44,37 +36,15 @@ class MainActivity : ComponentActivity() {
                     )
                 },
                 content = {
-                    var title  by remember { mutableStateOf("Loading...") }
-
-                    LaunchedEffect(Unit) {
-                        val call = RetrofitClient.api.getTodo()
-                        call.enqueue(object : Callback<Todo>{
-                            override fun onResponse(
-                                call: Call<Todo?>,
-                                response: Response<Todo?>
-                            ) {
-                                if (response.isSuccessful){
-                                    val todo = response.body()
-                                    title = if (todo != null) todo.title
-                                    else "Nothing Found"
-                                }else   title = "HTTP Error ${response.code()}"
-                            }
-
-                            override fun onFailure(
-                                call: Call<Todo?>,
-                                t: Throwable
-                            ) {
-                                title = "Network Error : ${t.message}"
-                            }
-
-                        })
-                    }
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(24.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = title, style = MaterialTheme.typography.labelLarge)
+                    val count by vieModel.count
+                    Column (horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth().fillMaxHeight()){
+                        Button(onClick = { vieModel.increment() }) {
+                            Text("Increment")
+                        }
+                            Text("Count: $count")
+                        Button(onClick = { vieModel.decrement() }) {
+                            Text("Decrement")
+                        }
                     }
                 }
             )
