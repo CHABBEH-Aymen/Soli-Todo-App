@@ -5,6 +5,6 @@ import retrofit2.Call
 import retrofit2.http.GET
 
 interface ApiService {
-    @GET
-    fun tasks(): Call<Todo>
+    @GET("todos/1")
+    fun getTodo(): Call<Todo>
 }
