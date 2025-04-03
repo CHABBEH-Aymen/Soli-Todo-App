@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.solitodo.Data.Todo
 import com.example.solitodo.api.RetrofitClient
+import kotlinx.coroutines.delay
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -44,37 +45,20 @@ class MainActivity : ComponentActivity() {
                     )
                 },
                 content = {
-                    var title  by remember { mutableStateOf("Loading...") }
+                    var count  by remember { mutableStateOf(0) }
 
                     LaunchedEffect(Unit) {
-                        val call = RetrofitClient.api.getTodo()
-                        call.enqueue(object : Callback<Todo>{
-                            override fun onResponse(
-                                call: Call<Todo?>,
-                                response: Response<Todo?>
-                            ) {
-                                if (response.isSuccessful){
-                                    val todo = response.body()
-                                    title = if (todo != null) todo.title
-                                    else "Nothing Found"
-                                }else   title = "HTTP Error ${response.code()}"
-                            }
-
-                            override fun onFailure(
-                                call: Call<Todo?>,
-                                t: Throwable
-                            ) {
-                                title = "Network Error : ${t.message}"
-                            }
-
-                        })
+                        while (count < 100){
+                            delay(1000)
+                            count++
+                        }
                     }
                     Column(
                         modifier = Modifier.fillMaxSize().padding(24.dp),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = title, style = MaterialTheme.typography.labelLarge)
+                        Text(text = "$count", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             )
